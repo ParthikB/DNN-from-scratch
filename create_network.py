@@ -4,6 +4,8 @@ from handlers import sigmoid
 
 def initialize_paramters(X):
     W1 = np.zeros((X.shape[0], 1))
+    # W1 = np.zeros((1, X.shape[0]))
+
     # W1 = np.random.randn(1, X.shape[0]) * 0.01
     b1 = 0
     parameters = {"W1" : W1, "b1" : b1}
@@ -20,7 +22,7 @@ def normalize(X):
 def forward_prop(X, parameters):
     W1 = parameters["W1"]
     b1 = parameters["b1"]
-
+    # print("============", W1.shape)
     Z1 = np.dot(W1.T, X) + b1
     A1 = sigmoid(Z1)
 
@@ -34,7 +36,8 @@ def compute_cost(forward, y):
     m = y.shape[1]
 
     cost = - (1/m) * np.sum( y * np.log(yhat) + (1-y) * np.log(1-yhat) )
-
+    # cost = - (1/m) * ( y * np.log(yhat) + (1-y) * np.log(1-yhat) )
+    # print(cost, y, yhat)
     return cost
 
 
@@ -45,12 +48,13 @@ def back_prop(forward, X, Y):
     dZ1 = A1 - Y
     # print("dZ1        :",dZ1)
     dW1 = np.dot(X, dZ1.T) / m
+    # print("---------------", dW1.shape)
     db1 = np.sum(dZ1) / m
     back = {'dW1' : dW1, "db1" : db1}
     return back
 
 
-def update_parameters(parameters, back, learning_rate=0.009):
+def update_parameters(parameters, back, learning_rate=0.005):
     W1 = parameters["W1"]
     b1 = parameters["b1"]
     dW1 = back['dW1']

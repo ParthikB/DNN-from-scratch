@@ -1,5 +1,6 @@
 import numpy as np
-
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 def create_data(total_samples, range_of_data):
     X1, X2, Y = [], [], []
@@ -28,6 +29,16 @@ def create_data(total_samples, range_of_data):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+
+def plot_data(data):
+    X = data[0]
+    Y = data[1]
+    sns.scatterplot(X[0], X[1], hue=Y[0])
+    plt.show()
+
+# def best_fit_line():
+#     for i in range(1, 101):
+#         y =
 
 if __name__ == "__main__":
     X, Y = create_data(50, 100)
