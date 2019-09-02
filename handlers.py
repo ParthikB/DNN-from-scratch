@@ -17,17 +17,16 @@ def create_data(total_samples, range_of_data):
         X2.append(x2)
         X = np.array([X1, X2])
         Y.append(label)
-    # print(X1)
-    # print(X2)
-    # print(X.reshape(-1, 2))
-    # print(X.shape)
 
-    # return np.array(X).reshape(-1, total_samples), np.array(Y).reshape(-1, total_samples)
     return np.array(X).reshape(2, -1), np.array(Y).reshape(1, -1)
 
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+
+def accuracy_score(Yhat, Y):
+    return 100 - np.mean(np.abs(Yhat - Y)) * 100
 
 
 def plot_data(data):
