@@ -1,70 +1,67 @@
-import numpy as np
-from handlers import sigmoid
+from handlers import *
 
 
-def initialize_paramters(X):
-    W1 = np.zeros((X.shape[0], 1))
-    # W1 = np.zeros((1, X.shape[0]))
+def layers_size(X, Y):
+    n_x = X.shape[0]
+    n_h = 4
+    n_y = Y.shape[0]
+    return n_x, n_h, n_y
 
-    # W1 = np.random.randn(1, X.shape[0]) * 0.01
-    b1 = 0
-    parameters = {"W1" : W1, "b1" : b1}
+
+def initialize_random_parameters(n_x, n_h, n_y):
+    W1 = np.random.randn(n_h, n_x) * 0.01
+    b1 = np.zeros((n_h, 1))
+    W2 = np.random.randn(n_y, n_h) * 0.01
+    b2 = np.zeros((n_y, 1))
+    parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2}
     return parameters
 
-def normalize(X):
-    m = X.shape[1]
-    mu = (1/m) * np.sum(X)
-    sd = (1/m) * np.sum(X**2)
-    X = (X - mu) / sd
-    return X
+
+def forward_propagation(parameters, X):
+    W1, b1, W2, b2 = parameters["W1"], parameters["b1"], parameters["W2"], parameters["b2"]
+
+    Z1 = np.dot(W1, X) + b1
+    A1 = np.tanh(Z1)
+
+    Z2 = np.dot(W2, A1) + b2
+    A2 = sigmoid(Z2)
+
+    cache = {"Z1": Z1, "A1": A1, "Z2": Z2, "A2": A2}
+    return cache, A2
 
 
-def forward_prop(X, parameters):
-    W1 = parameters["W1"]
-    b1 = parameters["b1"]
-    # print("============", W1.shape)
-    Z1 = np.dot(W1.T, X) + b1
-    A1 = sigmoid(Z1)
-
-    forward = {'Z1' : Z1, "A1" : A1}
-    return forward
-
-
-def compute_cost(forward, y):
-    yhat = forward['A1']
-    # print(yhat)
-    m = y.shape[1]
-
-    cost = - (1/m) * np.sum( y * np.log(yhat) + (1-y) * np.log(1-yhat) )
-    # cost = - (1/m) * ( y * np.log(yhat) + (1-y) * np.log(1-yhat) )
-    # print(cost, y, yhat)
+def compute_cost(A2, Y):
+    m = Y.shape[1]
+    cost = - np.sum(Y * np.log(A2) + (1-Y) * np.log(1-A2)) / m
     return cost
 
 
-def back_prop(forward, X, Y):
-    A1 = forward["A1"]
-    m = Y.shape[0]
+def back_prop(X, Y, cache, parameters):
+    A1, A2 = cache["A1"], cache["A2"]
+    W1, W2 = parameters["W1"], parameters["W2"]
+    m = Y.shape[1]
 
-    dZ1 = A1 - Y
-    # print("dZ1        :",dZ1)
-    dW1 = np.dot(X, dZ1.T) / m
-    # print("---------------", dW1.shape)
-    db1 = np.sum(dZ1) / m
-    back = {'dW1' : dW1, "db1" : db1}
+    dZ2 = A2 - Y
+    dW2 = np.dot(dZ2, A1.T) / m    # 1 x 4 >> A1 = 4 x 200 >> dZ2 = 1 x 200
+    db2 = np.sum(dZ2, axis=1, keepdims=True) / m
+
+    dZ1 = np.dot(W2.T, dZ2) * (1 - np.power(A1, 2))         # 4 x 200 >> w1 = 4 x 2 // X = 2 x 200
+    dW1 = np.dot(dZ1, X.T) / m      # 4 x 1 >> dZ1 = 4 x 200 // X = 2 x 200
+    db1 = np.sum(dZ1, axis=1, keepdims=True) / m
+
+    back = {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
     return back
 
 
 def update_parameters(parameters, back, learning_rate=0.005):
-    W1 = parameters["W1"]
-    b1 = parameters["b1"]
-    dW1 = back['dW1']
-    db1 = back['db1']
+    parameters["W1"] -= learning_rate * back["dW1"]
+    parameters["b1"] -= learning_rate * back["db1"]
+    parameters["W2"] -= learning_rate * back["dW2"]
+    parameters["b2"] -= learning_rate * back["db2"]
 
-    W1 -= learning_rate * dW1
-    b1 -= learning_rate * db1
-
-    parameters = {"W1" : W1, "b1" : b1}
     return parameters
 
-if __name__ == '__main__':
-    print(sigmoid(0))
+
+def predict(X, parameters):
+    cache, A2 = forward_propagation(parameters, X)
+    return A2
