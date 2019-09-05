@@ -8,6 +8,13 @@ def layers_size(X, Y):
     return n_x, n_h, n_y
 
 
+def normalize(X):
+    m = X.shape[1]
+    mu = np.mean(X)
+    sigma = np.sum(X**2) / m
+    return (X-mu)/sigma
+
+
 def initialize_random_parameters(n_x, n_h, n_y):
     W1 = np.random.randn(n_h, n_x) * 0.01
     b1 = np.zeros((n_h, 1))
@@ -64,4 +71,5 @@ def update_parameters(parameters, back, learning_rate=0.005):
 
 def predict(X, parameters):
     cache, A2 = forward_propagation(parameters, X)
+    A2 = np.where(A2 < 0.5, 0, 1)
     return A2
