@@ -59,35 +59,37 @@ def linear_backward(dZ, cache):
     W = cache['W']
     m = A_prev.shape[1]
 
-    dW = np.dot(A_prev, dZ.T) / m
-    db = np.sum(dZ, axis=1, keepdims=True)
+    dW = np.dot(dZ, A_prev.T) / m
+    db = np.sum(dZ, axis=1, keepdims=True) / m
     dA_prev = np.dot(W.T, dZ)
 
     return dA_prev, dW, db
 
 
 def linear_activation_backward(dA, cache, activation):
-    if activation == 'sigmoid':
-        dZ = sigmoid_backward(dA, cache)
-    elif activation == 'relu':
-        dZ = relu_backward(dA, cache)
+    linear_cache, activation_cache = cache
 
-    dA_prev, dW, db = linear_backward(dZ, cache)
+    if activation == 'sigmoid':
+        dZ = sigmoid_backward(dA, activation_cache)
+    elif activation == 'relu':
+        dZ = relu_backward(dA, activation_cache)
+
+    dA_prev, dW, db = linear_backward(dZ, linear_cache)
 
     return dA_prev, dW, db
 
 
 def L_model_backward(AL, Y, caches):
     L = len(caches)
-    current_cache = caches[L-1]
     grads = {}
+    Y = Y.reshape(AL.shape)
+    dAL = - (np.divide(Y, AL) - np.divide(1-Y, 1-AL))
 
-    dAL = - (np.divide(Y, AL) - np.divide((1-Y), (1-AL)))
-    grads["dA" + str(L-1)], grads["dW" + str(L-1)], grads["db" + str(L-1)] = linear_activation_backward(dAL, current_cache, 'sigmoid')
-
-    for l in range(1, L)[::-1]:
+    current_cache = caches[L-1]
+    grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = linear_activation_backward(dAL, current_cache, 'sigmoid')
+    for l in range(L-1)[::-1]:
         current_cache = caches[l]
-        grads["dA" + str(l)], grads["dW" + str(l)], grads["db" + str(l)] = linear_activation_backward(grads["dA" + str(l+1  )], current_cache, 'relu')
+        grads["dA" + str(l)], grads["dW" + str(l+1)], grads["db" + str(l+1)] = linear_activation_backward(grads["dA" + str(l+1)], current_cache, 'relu')
 
     return grads
 
@@ -114,15 +116,15 @@ def accuracy_score(Yhat, Y):
 
 
 def predict(X, Y, parameters):
-    forward, A2, caches = forward_propagation(parameters, X)
-    A2 = np.where(A2 < 0.5, 0, 1)
-    accuracy = accuracy_score(A2, Y)
-    return accuracy, A2
+    AL, caches = L_model_forward(X, parameters)
+    AL = np.where(AL < 0.5, 0, 1)
+    accuracy = accuracy_score(AL, Y)
+    return accuracy, AL
 
 
-def plot_cost_log(cost_log):
+def plot_cost_log(cost_log, learning_rate):
     plt.plot(cost_log)
     plt.xlabel("Iteration")
     plt.ylabel("Cost")
-    plt.title("Cost Function")
+    plt.title(f"Cost Function | Learning Rate : {learning_rate}")
     plt.show()
