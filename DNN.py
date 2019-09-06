@@ -14,7 +14,7 @@ epoch_log = []
 
 parameters = initialize_random_parameters(LAYER_DIMS, X)
 
-for epoch in range(5000):
+for epoch in range(5):
     if epoch % 100 == 0:
         print("epoch :", epoch)
 
